@@ -110,12 +110,13 @@
 
                                 ding.currentTime = 0;
                                 ding.play();
-
+                                checkCollision();
                                 drawIt();
                                 if (!timeToGrow === false) {
                                     growSnake();
                                     //timeToGrow = false;
                                 }
+                               
                                 checkIfEaten();
                             }
                     
@@ -137,6 +138,14 @@
                         makeFood();
                         timeToGrow = 3;
                     }
+                }
+                function checkCollision(){
+                    snakeBody.forEach(function(i){
+                        if(i[0]===x && i[1]===y){
+                            alert("bam");
+                            clearInterval(move);
+                        }
+                    });
                 }
                 function makeFood() {
 
