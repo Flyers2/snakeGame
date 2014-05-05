@@ -28,6 +28,7 @@
                         timeToGrow = 1,
                         snakeBody = [ [boxWidth * 1, 0], [0, 0]],
                         direction = 39,
+                        checkedInFront;//after you press button will snake collide (prevent u from pressing up right down right away
                         faceImage = $('<img src="snakeface.png" />').load(function() {
                         drawIt();
                     }),
@@ -71,7 +72,9 @@
                     $("body").keydown(function(event) {
                         sum = (direction + event.which);
                         if (sum !== 76 && sum !== 78)
+                           if(checkedInFront)
                             direction = event.which;
+                            checkedInFront=false;
                         event.preventDefault();
 
 
@@ -106,9 +109,13 @@
                                     y = 0;
                                 break;
                         }
+                        checkedInFront = true;
                         if (valid) {
-                            checkCollision();
+                          if(checkCollision()){
+                              return;
+                          }
                             drawIt();
+                            moved = true;
                             if (!timeToGrow === false) {
                                 growSnake();
                                 //timeToGrow = false;
@@ -143,6 +150,7 @@
                             if (i[0] === x && i[1] === y) {
                                 alert("bam");
                                 clearInterval(move);
+                                return true;
                             }
                         });
                     }
@@ -152,8 +160,10 @@
                             foodY = getRandom(height / boxWidth, 1);
                         oldFoodX = foodCoord.x | 0;
                         oldFoodY = foodCoord.y | 0;
-                        if (foodX === x && foodY === y)
-                            getRandom();
+                        snakeBody.forEach(function(coord){
+                            if (foodX === coord[0] && foodY === coord[1])
+                                 getRandom();
+                        });
                         context.fillStyle = "#ff0000";
                         context.fillRect(foodX, foodY, 20, 20);
 
