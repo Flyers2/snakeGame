@@ -4,7 +4,7 @@
         <title>Canvas</title>
         <style>
             #it {
-                background-color: pink;
+                background-color: buttonshadow;
             }
         </style>
     </head>
@@ -17,153 +17,152 @@
             $(function() {
                 var theCanvas = $("#it"),
                         context = theCanvas[0].getContext("2d"),
-                        x = 0,
+                        boxWidth = 20,
+                        x = boxWidth,
                         y = 0,
                         lastX = 0,
                         lastY = 0,
                         width,
                         height,
-                        boxWidth = 20,
                         foodCoord = {},
-                        timeToGrow = 2,
-                        snakeBody = [],
+                        timeToGrow = 1,
+                        snakeBody = [ [boxWidth * 1, 0], [0, 0]],
                         direction = 39,
-                        faceImage = $('<img src="face.png" />').load(function() {
-                    drawIt();
-                }),
-                        backgroundMusic = $("#bg"),
-                        ding = $("#ding")[0];
+                        faceImage = $('<img src="snakeface.png" />').load(function() {
+                        drawIt();
+                    }),
+                            backgroundMusic = $("#bg"),
+                            ding = $("#ding")[0];
 
-                theCanvas.attr("width", "300px");
-                theCanvas.attr("height", "300px");
-                width = theCanvas.width(),
-                        height = theCanvas.height();
+                    theCanvas.attr("width", "900px");
+                    theCanvas.attr("height", "700px");
+                    width = theCanvas.width(),
+                            height = theCanvas.height();
 
 
-                function drawIt() {
+                    function drawIt() {
 
-                    snakeBody.unshift([x, y]);
-                    deletePart = snakeBody.pop();
-                    context.clearRect(deletePart[0], deletePart[1], boxWidth, boxWidth);
-                    temp = [x, y];
-                    if (snakeBody.length === 0)
-                        snakeBody.unshift(temp);
-                    snakeBody.forEach(function(coor) {
-                        context.fillStyle="#3cff00";
-                        context.fillRect(coor[0], coor[1], boxWidth, boxWidth)
-                    })
-                    lastX = x;
-                    lastY = y;
-                }
-                function growSnake() {
-                    var segement = [foodCoord.oldFoodX, foodCoord.oldFoodY];
-                    context.fillRect(foodCoord.oldFoodX, foodCoord.oldFoodY, boxWidth, boxWidth);
-                    snakeBody.push(segement);
-                    timeToGrow--;
+                        snakeBody.unshift([x, y]);
+                        deletePart = snakeBody.pop();
+                        context.clearRect(deletePart[0], deletePart[1], boxWidth, boxWidth);
+                        temp = [x, y];
+                        if (snakeBody.length === 0)
+                            snakeBody.unshift(temp);
+                        snakeBody.forEach(function(coor) {
+                            context.fillStyle = "#3cff00";
+                            context.fillRect(coor[0], coor[1], boxWidth, boxWidth)
+                        });
+                        lastX = x;
+                        lastY = y;
+                    }
+                    function growSnake() {
+                        var segement = [foodCoord.oldFoodX, foodCoord.oldFoodY];
+                        context.fillRect(foodCoord.oldFoodX, foodCoord.oldFoodY, boxWidth, boxWidth);
+                        snakeBody.push(segement);
+                        timeToGrow--;
 
-                }
+                    }
 
-                /*setInterval(function () {
-                 x++;
-                 drawIt();
-                 }, 10);*/
+                    /*setInterval(function () {
+                     x++;
+                     drawIt();
+                     }, 10);*/
 
-                $("body").keydown(function(event) {
-                    sum = (direction+event.which);
-                    if (sum!==76&&sum!==78)
-                    direction = event.which;
-                    event.preventDefault();
-                    
+                    $("body").keydown(function(event) {
+                        sum = (direction + event.which);
+                        if (sum !== 76 && sum !== 78)
+                            direction = event.which;
+                        event.preventDefault();
 
+
+
+                    });
+
+                    move = setInterval(function() {
+                        var valid = false;
+                        switch (direction) {
+                            case 37:
+                                valid = true;
+                                x -= boxWidth;
+                                if (x < 0)
+                                    x = width - boxWidth;
+                                break;
+                            case 38:
+                                valid = true;
+                                y -= boxWidth;
+                                if (y < 0)
+                                    y = height - boxWidth;
+                                break;
+                            case 39:
+                                valid = true;
+                                x += boxWidth;
+                                if (x > width - boxWidth)
+                                    x = 0;
+                                break;
+                            case 40:
+                                valid = true;
+                                y += boxWidth;
+                                if (y > (height - boxWidth))
+                                    y = 0;
+                                break;
+                        }
+                        if (valid) {
+                            checkCollision();
+                            drawIt();
+                            if (!timeToGrow === false) {
+                                growSnake();
+                                //timeToGrow = false;
+                            }
+
+                            checkIfEaten();
+                        }
+
+                    }, 100);
+
+                    function getRandom(max, min) {
+                        var number = 0;
+
+                        // number =  Math.floor(Math.random() *( max-min+1))+min;
+                        number = Math.floor(Math.random() * (max));
+                        number = number * boxWidth;
+                        console.log(number);
+                        return number;
+
+                    }
+                    function checkIfEaten() {
+                        if (foodCoord.x === x && foodCoord.y === y) {
+                            console.log("chomp");
+                            //ding.currentTime = 0;
+                            ding.play();
+                            makeFood();
+                            timeToGrow = 3;
+                        }
+                    }
+                    function checkCollision() {
+                        snakeBody.forEach(function(i) {
+                            if (i[0] === x && i[1] === y) {
+                                alert("bam");
+                                clearInterval(move);
+                            }
+                        });
+                    }
+                    function makeFood() {
+
+                        var foodX = getRandom(width / boxWidth, 1),
+                            foodY = getRandom(height / boxWidth, 1);
+                        oldFoodX = foodCoord.x | 0;
+                        oldFoodY = foodCoord.y | 0;
+                        if (foodX === x && foodY === y)
+                            getRandom();
+                        context.fillStyle = "#ff0000";
+                        context.fillRect(foodX, foodY, 20, 20);
+
+                        foodCoord = {x: foodX, y: foodY, oldFoodX: oldFoodX, oldFoodY: oldFoodY};
+
+                    }
+                    makeFood();
 
                 });
-               
-                move = setInterval(function() {
-                    var valid = false;
-                    switch (direction) {
-                        case 37:                           
-                            valid = true;
-                            x -= boxWidth;
-                            if (x < 0)
-                                x = width - boxWidth;
-                            break;
-                        case 38:
-                            valid = true;
-                            y -= boxWidth;
-                            if (y < 0)
-                                y = height - boxWidth;
-                            break;
-                        case 39:
-                            valid = true;
-                            x += boxWidth;
-                            if (x > width - boxWidth)
-                                x = 0;
-                            break;
-                        case 40:
-                            valid = true;
-                            y += boxWidth;
-                            if (y > (height - boxWidth))
-                                y = 0;
-                            break;
-                    }       
-                         if (valid) {
-
-                                ding.currentTime = 0;
-                                ding.play();
-                                checkCollision();
-                                drawIt();
-                                if (!timeToGrow === false) {
-                                    growSnake();
-                                    //timeToGrow = false;
-                                }
-                               
-                                checkIfEaten();
-                            }
-                    
-                }, 100);
-
-                function getRandom(max, min) {
-                    var number = 0;
-
-                    // number =  Math.floor(Math.random() *( max-min+1))+min;
-                    number = Math.floor(Math.random() * (max));
-                    number = number * boxWidth;
-                    console.log(number);
-                    return number;
-
-                }
-                function checkIfEaten() {
-                    if (foodCoord.x === x && foodCoord.y === y) {
-                        console.log("chomp");
-                        makeFood();
-                        timeToGrow = 3;
-                    }
-                }
-                function checkCollision(){
-                    snakeBody.forEach(function(i){
-                        if(i[0]===x && i[1]===y){
-                            alert("bam");
-                            clearInterval(move);
-                        }
-                    });
-                }
-                function makeFood() {
-
-                    var foodX = getRandom(width / boxWidth, 1),
-                            foodY = getRandom(height / boxWidth, 1);
-                    oldFoodX = foodCoord.x | 0;
-                    oldFoodY = foodCoord.y | 0;
-                    if (foodX === x && foodY === y)
-                        getRandom();
-                    context.fillStyle ="#ff0000";
-                    context.fillRect(foodX, foodY, 20, 20);
-                   
-                    foodCoord = {x: foodX, y: foodY, oldFoodX: oldFoodX, oldFoodY: oldFoodY};
-
-                }
-                makeFood();
-
-            });
 
 
         </script>
