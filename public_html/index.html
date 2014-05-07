@@ -5,13 +5,19 @@
         <style>
             #it {
                 background-color: buttonshadow;
+                float:left
+            }
+            #score{
+                //float: right
             }
         </style>
     </head>
     <body>
         <audio id="bg" src="bg.wav" autoplay loop></audio>
+        <span id ='scoreText'>your score is <span id="score"></span></span>
         <audio id="ding" src="ding.wav"></audio>
         <canvas id="it"></canvas>
+       
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
         <script>
             $(function() {
@@ -26,153 +32,171 @@
                         height,
                         foodCoord = {},
                         timeToGrow = 1,
-                        snakeBody = [ [boxWidth * 1, 0], [0, 0]],
+                        snakeBody = [[boxWidth * 1, 0], [0, 0]],
                         direction = 39,
+                        score = 0,
                         checkedInFront;//after you press button will snake collide (prevent u from pressing up right down right away
-                        faceImage = $('<img src="snakeface.png" />').load(function() {
-                        drawIt();
-                    }),
-                            backgroundMusic = $("#bg"),
-                            ding = $("#ding")[0];
+                faceImage = $('<img src="snakeface.png" />').load(function() {
+                    drawIt();
+                }),
+                        backgroundMusic = $("#bg"),
+                        ding = $("#ding")[0];
 
-                    theCanvas.attr("width", "900px");
-                    theCanvas.attr("height", "700px");
-                    width = theCanvas.width(),
-                            height = theCanvas.height();
+                theCanvas.attr("width", "900");
+                theCanvas.attr("height", "600");
+                width = theCanvas.width(),
+                        height = theCanvas.height();
 
 
-                    function drawIt() {
+                function drawIt() {
 
-                        snakeBody.unshift([x, y]);
-                        deletePart = snakeBody.pop();
-                        context.clearRect(deletePart[0], deletePart[1], boxWidth, boxWidth);
-                        temp = [x, y];
-                        if (snakeBody.length === 0)
-                            snakeBody.unshift(temp);
-                        snakeBody.forEach(function(coor) {
-                            context.fillStyle = "#3cff00";
-                            context.fillRect(coor[0], coor[1], boxWidth, boxWidth)
-                        });
-                        lastX = x;
-                        lastY = y;
-                    }
-                    function growSnake() {
-                        var segement = [foodCoord.oldFoodX, foodCoord.oldFoodY];
-                        context.fillRect(foodCoord.oldFoodX, foodCoord.oldFoodY, boxWidth, boxWidth);
-                        snakeBody.push(segement);
-                        timeToGrow--;
+                    snakeBody.unshift([x, y]);
+                    deletePart = snakeBody.pop();
+                    context.clearRect(deletePart[0], deletePart[1], boxWidth, boxWidth);
+                    temp = [x, y];
+                    if (snakeBody.length === 0)
+                        snakeBody.unshift(temp);
+                    $.each(snakeBody, function(i, coor) {
+                        if (i === 0) {
+                            context.drawImage(faceImage[0],coor[0], coor[1])
+                        }
+                        else {
+                            context.fillStyle = "pink";
+                            context.fillRect(coor[0], coor[1], boxWidth, boxWidth);
+                        }
+                    });
+                    lastX = x;
+                    lastY = y;
+                }
+                function growSnake() {
+                    var segement = [foodCoord.oldFoodX, foodCoord.oldFoodY];
+                    context.fillRect(foodCoord.oldFoodX, foodCoord.oldFoodY, boxWidth, boxWidth);
+                    snakeBody.push(segement);
+                    timeToGrow--;                    
+                    $('#score').html(score);
 
-                    }
+                }
 
-                    /*setInterval(function () {
-                     x++;
-                     drawIt();
-                     }, 10);*/
+                /*setInterval(function () {
+                 x++;
+                 drawIt();
+                 }, 10);*/
 
-                    $("body").keydown(function(event) {
+                $("body").keydown(function(event) {
+                    if(event.which===37||event.which===38||event.which===39||event.which===40){
                         sum = (direction + event.which);
                         if (sum !== 76 && sum !== 78)
-                           if(checkedInFront)
-                            direction = event.which;
-                            checkedInFront=false;
+                            if (checkedInFront)
+                                direction = event.which;
+                        checkedInFront = false;
                         event.preventDefault();
+                    }
 
 
+                });
 
-                    });
-
-                    move = setInterval(function() {
-                        var valid = false;
-                        switch (direction) {
-                            case 37:
-                                valid = true;
-                                x -= boxWidth;
-                                if (x < 0)
-                                    x = width - boxWidth;
-                                break;
-                            case 38:
-                                valid = true;
-                                y -= boxWidth;
-                                if (y < 0)
-                                    y = height - boxWidth;
-                                break;
-                            case 39:
-                                valid = true;
-                                x += boxWidth;
-                                if (x > width - boxWidth)
-                                    x = 0;
-                                break;
-                            case 40:
-                                valid = true;
-                                y += boxWidth;
-                                if (y > (height - boxWidth))
-                                    y = 0;
-                                break;
+                move = setInterval(function() {
+                    var valid = false;
+                    switch (direction) {
+                        case 37:
+                            valid = true;
+                            x -= boxWidth;
+                            if (x < 0)
+                                x = width - boxWidth;
+                            break;
+                        case 38:
+                            valid = true;
+                            y -= boxWidth;
+                            if (y < 0)
+                                y = height - boxWidth;
+                            break;
+                        case 39:
+                            valid = true;
+                            x += boxWidth;
+                            if (x > width - boxWidth)
+                                x = 0;
+                            break;
+                        case 40:
+                            valid = true;
+                            y += boxWidth;
+                            if (y > (height - boxWidth))
+                                y = 0;
+                            break;
+                    }
+                    
+                    if (valid) {
+                        if (checkCollision()) {
+                            return;
                         }
                         checkedInFront = true;
-                        if (valid) {
-                          if(checkCollision()){
-                              return;
-                          }
-                            drawIt();
-                            moved = true;
-                            if (!timeToGrow === false) {
-                                growSnake();
-                                //timeToGrow = false;
-                            }
-
-                            checkIfEaten();
+                        drawIt();
+                        moved = true;
+                        if (!timeToGrow === false) {
+                            growSnake();
+                            //timeToGrow = false;
                         }
 
-                    }, 100);
-
-                    function getRandom(max, min) {
-                        var number = 0;
-
-                        // number =  Math.floor(Math.random() *( max-min+1))+min;
-                        number = Math.floor(Math.random() * (max));
-                        number = number * boxWidth;
-                        console.log(number);
-                        return number;
-
+                        checkIfEaten();
                     }
-                    function checkIfEaten() {
-                        if (foodCoord.x === x && foodCoord.y === y) {
-                            console.log("chomp");
-                            //ding.currentTime = 0;
-                            ding.play();
-                            makeFood();
-                            timeToGrow = 3;
+
+                }, 100);
+
+                function getRandom(max, min) {
+                    var number = 0;
+
+                    // number =  Math.floor(Math.random() *( max-min+1))+min;
+                    number = Math.floor(Math.random() * (max));
+                    number = number * boxWidth;
+                    console.log(number);
+                    return number;
+
+                }
+                function checkIfEaten() {
+                    if (foodCoord.x === x && foodCoord.y === y) {
+                        console.log("chomp");
+                        //ding.currentTime = 0;
+                        ding.play();
+                        score = score+100;
+                        makeFood();
+                        timeToGrow = 3;
+                    }
+                }
+                function checkCollision() {
+                    var collision = false;
+                    snakeBody.forEach(function(i) {
+                        if (i[0] === x && i[1] === y) {
+                            alert("bam");
+                            clearInterval(move);
+                            collision = true;
+                            return false;
                         }
-                    }
-                    function checkCollision() {
-                        snakeBody.forEach(function(i) {
-                            if (i[0] === x && i[1] === y) {
-                                alert("bam");
-                                clearInterval(move);
-                                return true;
-                            }
-                        });
-                    }
-                    function makeFood() {
+                    });
+                    return collision;
+                }
+                function makeFood() {
 
-                        var foodX = getRandom(width / boxWidth, 1),
+                    var foodX = getRandom(width / boxWidth, 1),
                             foodY = getRandom(height / boxWidth, 1);
-                        oldFoodX = foodCoord.x | 0;
-                        oldFoodY = foodCoord.y | 0;
-                        snakeBody.forEach(function(coord){
-                            if (foodX === coord[0] && foodY === coord[1])
-                                 getRandom();
-                        });
+                    oldFoodX = foodCoord.x | 0;
+                    oldFoodY = foodCoord.y | 0;
+                    breakOut = false;
+                    snakeBody.forEach(function(coord) {
+                        if (foodX === coord[0] && foodY === coord[1]){
+                            makeFood();
+                            breakOut =true ;
+                        }    
+                    });
+                    if(breakOut===false){
                         context.fillStyle = "#ff0000";
                         context.fillRect(foodX, foodY, 20, 20);
 
                         foodCoord = {x: foodX, y: foodY, oldFoodX: oldFoodX, oldFoodY: oldFoodY};
-
                     }
-                    makeFood();
+                }
+                $('#score').html(score);
+                makeFood();
 
-                });
+            });
 
 
         </script>
