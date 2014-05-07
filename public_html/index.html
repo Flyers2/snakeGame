@@ -13,12 +13,17 @@
         </style>
     </head>
     <body>
+        <div id="dialog-modal" title="Snake game">
+            <p>press start  to start game.</p>
+        </div>
         <audio id="bg" src="bg.wav" autoplay loop></audio>
         <span id ='scoreText'>your score is <span id="score"></span></span>
         <audio id="ding" src="ding.wav"></audio>
         <canvas id="it"></canvas>
-       
+
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+        <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
+        <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
         <script>
             $(function() {
                 var theCanvas = $("#it"),
@@ -35,8 +40,8 @@
                         snakeBody = [[boxWidth * 1, 0], [0, 0]],
                         direction = 39,
                         score = 0,
-                        checkedInFront;//after you press button will snake collide (prevent u from pressing up right down right away
-                faceImage = $('<img src="snakeface.png" />').load(function() {
+                        checkedInFront,//after you press button will snake collide (prevent u from pressing up right down right away
+                        faceImage = $('<img src="snakeface.png" />').load(function() {
                     drawIt();
                 }),
                         backgroundMusic = $("#bg"),
@@ -58,7 +63,7 @@
                         snakeBody.unshift(temp);
                     $.each(snakeBody, function(i, coor) {
                         if (i === 0) {
-                            context.drawImage(faceImage[0],coor[0], coor[1])
+                            context.drawImage(faceImage[0], coor[0], coor[1])
                         }
                         else {
                             context.fillStyle = "pink";
@@ -72,7 +77,7 @@
                     var segement = [foodCoord.oldFoodX, foodCoord.oldFoodY];
                     context.fillRect(foodCoord.oldFoodX, foodCoord.oldFoodY, boxWidth, boxWidth);
                     snakeBody.push(segement);
-                    timeToGrow--;                    
+                    timeToGrow--;
                     $('#score').html(score);
 
                 }
@@ -83,7 +88,7 @@
                  }, 10);*/
 
                 $("body").keydown(function(event) {
-                    if(event.which===37||event.which===38||event.which===39||event.which===40){
+                    if (event.which === 37 || event.which === 38 || event.which === 39 || event.which === 40) {
                         sum = (direction + event.which);
                         if (sum !== 76 && sum !== 78)
                             if (checkedInFront)
@@ -94,53 +99,55 @@
 
 
                 });
-
-                move = setInterval(function() {
-                    var valid = false;
-                    switch (direction) {
-                        case 37:
-                            valid = true;
-                            x -= boxWidth;
-                            if (x < 0)
-                                x = width - boxWidth;
-                            break;
-                        case 38:
-                            valid = true;
-                            y -= boxWidth;
-                            if (y < 0)
-                                y = height - boxWidth;
-                            break;
-                        case 39:
-                            valid = true;
-                            x += boxWidth;
-                            if (x > width - boxWidth)
-                                x = 0;
-                            break;
-                        case 40:
-                            valid = true;
-                            y += boxWidth;
-                            if (y > (height - boxWidth))
-                                y = 0;
-                            break;
-                    }
-                    
-                    if (valid) {
-                        if (checkCollision()) {
-                            return;
-                        }
-                        checkedInFront = true;
-                        drawIt();
-                        moved = true;
-                        if (!timeToGrow === false) {
-                            growSnake();
-                            //timeToGrow = false;
+                function intervalManager() {
+                    move = setInterval(function() {
+                        var valid = false;
+                        switch (direction) {
+                            case 37:
+                                valid = true;
+                                x -= boxWidth;
+                                if (x < 0)
+                                    x = width - boxWidth;
+                                break;
+                            case 38:
+                                valid = true;
+                                y -= boxWidth;
+                                if (y < 0)
+                                    y = height - boxWidth;
+                                break;
+                            case 39:
+                                valid = true;
+                                x += boxWidth;
+                                if (x > width - boxWidth)
+                                    x = 0;
+                                break;
+                            case 40:
+                                valid = true;
+                                y += boxWidth;
+                                if (y > (height - boxWidth))
+                                    y = 0;
+                                break;
                         }
 
-                        checkIfEaten();
-                    }
+                        if (valid) {
+                            if (checkCollision()) {
+                                highScore();
+                                return;
+                                
+                            }
+                            checkedInFront = true;
+                            drawIt();
+                            moved = true;
+                            if (!timeToGrow === false) {
+                                growSnake();
+                                //timeToGrow = false;
+                            }
 
-                }, 100);
+                            checkIfEaten();
+                        }
 
+                    }, 100);
+                }
                 function getRandom(max, min) {
                     var number = 0;
 
@@ -156,7 +163,7 @@
                         console.log("chomp");
                         //ding.currentTime = 0;
                         ding.play();
-                        score = score+100;
+                        score = score + 100;
                         makeFood();
                         timeToGrow = 3;
                     }
@@ -181,12 +188,12 @@
                     oldFoodY = foodCoord.y | 0;
                     breakOut = false;
                     snakeBody.forEach(function(coord) {
-                        if (foodX === coord[0] && foodY === coord[1]){
+                        if (foodX === coord[0] && foodY === coord[1]) {
                             makeFood();
-                            breakOut =true ;
-                        }    
+                            breakOut = true;
+                        }
                     });
-                    if(breakOut===false){
+                    if (breakOut === false) {
                         context.fillStyle = "#ff0000";
                         context.fillRect(foodX, foodY, 20, 20);
 
@@ -194,9 +201,39 @@
                     }
                 }
                 $('#score').html(score);
-                makeFood();
+                function displayStartup(){
+                    $(function() {
+                        $("#dialog-modal").dialog({
+                            height: 260,
+                            modal: true,
+                            hide: false,
+                            //visibilty:hidden
+                        });
+                        $('#dialog-modal').dialog({
+                            buttons: [{text: "start", click: function() {
+                                        $(this).dialog("close");
+                                        makeFood();
+                                        intervalManager();
+                                    }
+                                },{text:"high scores",click:function(){
+                                        alert("scores");
+                                }}
+                            ]});
 
+
+
+                    });
+                }
+                function highScore(){
+                        div = $('<div></div>').dialog();
+                        
+                        div.html(("your score was "+score));
+                       // $('body').append(div);
+                        displayStartup();
+                }
+              displayStartup();
             });
+            
 
 
         </script>
